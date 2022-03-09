@@ -39,7 +39,7 @@ public class JobRunner implements CommandLineRunner {
 
     var step =
         stepBuilderFactory
-            .get("IntegerProcessingStep")
+            .get("integerProcessingStep")
             .<Integer, Integer>chunk(5)
             .faultTolerant()
             .skipLimit(50)
