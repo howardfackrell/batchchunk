@@ -9,13 +9,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class Processors {
 
-  @Bean
-  public ItemProcessor<Integer, Integer> itemProcessor(
-      ItemProcessor<Integer, Integer> dbLoggingNewTransactionProcessor) {
+  public static ItemProcessor<Integer, Integer> compose(
+      ItemProcessor<Integer, Integer>... processors) {
     var compositeProcessor = new CompositeItemProcessor<Integer, Integer>();
-    compositeProcessor.setDelegates(
-        List.of(
-            failEveryNthProcessor(4), consoleLoggingProcessor(), dbLoggingNewTransactionProcessor));
+    compositeProcessor.setDelegates(List.of(processors));
     return compositeProcessor;
   }
 

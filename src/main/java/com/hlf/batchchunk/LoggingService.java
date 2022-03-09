@@ -14,6 +14,11 @@ public class LoggingService {
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Transactional
+  public void deleteAll() {
+    namedParameterJdbcTemplate.update("truncate work_log", Map.of());
+  }
+
+  @Transactional
   public void log(Integer integer) {
     var params =
         Map.<String, Object>of("id", integer, "message", integer + " currently processing");

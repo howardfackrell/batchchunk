@@ -33,8 +33,7 @@ public class Readers {
     return new ListItemReader(work);
   }
 
-  @Bean
-  public ItemReader<Integer> fileReader() throws IOException {
+  public static ItemReader<Integer> fileReader() throws IOException {
     var work =
         Files.readAllLines(Paths.get(".", "work_ids.txt")).stream()
             .map(Integer::parseInt)
