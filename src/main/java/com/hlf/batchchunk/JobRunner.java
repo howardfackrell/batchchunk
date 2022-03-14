@@ -10,7 +10,10 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.retry.backoff.BackOffPolicy;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,12 +27,15 @@ public class JobRunner implements CommandLineRunner {
 
   // readers needing spring wiring, there are more static ItemReader factory methods in the Readers
   // class
-  private final ItemReader<Integer> databaseReader;
+  private final ItemReader<Integer> databaseListReader;
+  private final ItemReader<Integer> databaseCursorReader;
 
   // processors needing spring wiring, there are more static ItemProcessor factory methods in the
   // Processors class
   private final ItemProcessor<Integer, Integer> dbLoggingProcessor;
   private final ItemProcessor<Integer, Integer> dbLoggingNewTransactionProcessor;
+
+  private final ItemWriter<Integer> dbItemWriter;
 
   public void run(String... args) throws Exception {
 
@@ -43,15 +49,17 @@ public class JobRunner implements CommandLineRunner {
             .<Integer, Integer>chunk(5)
             .faultTolerant()
             .skipLimit(50)
+            .processorNonTransactional()
+            .backOffPolicy(new FixedBackOffPolicy())
             .skip(DontLikeItException.class)
-            //            .readerIsTransactionalQueue()
-            .reader(databaseReader)
+//            .readerIsTransactionalQueue()
+            .reader(databaseCursorReader)
             .processor(
                 Processors.compose(
                     Processors.failEveryNthProcessor(4),
                     dbLoggingNewTransactionProcessor,
                     Processors.consoleLoggingProcessor()))
-            .writer(Writers.itemWriter())
+            .writer(Writers.consoleItemWriter())
             .build();
     var job = jobBuilderFactory.get("integerProcessingJob").start(step).build();
 
