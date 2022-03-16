@@ -1,5 +1,8 @@
 package com.hlf.batchchunk;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -29,5 +32,20 @@ public class LoggingService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void logInNewTransaction(Integer integer) {
     log(integer);
+  }
+
+  @Transactional
+  public void markWorkItemProcessed(Integer id) {
+    var sql = "update work_item set work_item_processed = :processed where work_item_id = :id";
+    var params = new HashMap<String, Object>();
+    params.put("processed", LocalDateTime.now());
+    params.put("id", id);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Transactional
+  public void clearWorkItemsProcessed() {
+    var sql = "update work_item set work_item_processed = null";
+    namedParameterJdbcTemplate.update(sql, Map.of());
   }
 }

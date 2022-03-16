@@ -34,6 +34,7 @@ public class JobRunner implements CommandLineRunner {
   // Processors class
   private final ItemProcessor<Integer, Integer> dbLoggingProcessor;
   private final ItemProcessor<Integer, Integer> dbLoggingNewTransactionProcessor;
+  private final ItemProcessor<Integer, Integer> markProcessedItemProcessor;
 
   private final ItemWriter<Integer> dbItemWriter;
 
@@ -42,22 +43,24 @@ public class JobRunner implements CommandLineRunner {
     // clean up after any previous run - do it at the beginning not the end so you can query the db
     // at the end
     loggingService.deleteAll();
+    loggingService.clearWorkItemsProcessed();
 
     var step =
         stepBuilderFactory
             .get("integerProcessingStep")
             .<Integer, Integer>chunk(5)
             .faultTolerant()
-            .skipLimit(50)
-            .processorNonTransactional()
+            .skipLimit(4)
+//            .processorNonTransactional()
             .backOffPolicy(new FixedBackOffPolicy())
             .skip(DontLikeItException.class)
-//            .readerIsTransactionalQueue()
+            //            .readerIsTransactionalQueue()
             .reader(databaseCursorReader)
             .processor(
                 Processors.compose(
                     Processors.failEveryNthProcessor(4),
                     dbLoggingNewTransactionProcessor,
+                    markProcessedItemProcessor,
                     Processors.consoleLoggingProcessor()))
             .writer(Writers.consoleItemWriter())
             .build();

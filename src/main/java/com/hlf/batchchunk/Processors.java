@@ -1,8 +1,7 @@
 package com.hlf.batchchunk;
 
-import java.util.List;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.support.CompositeItemProcessor;
+import org.springframework.batch.item.support.builder.CompositeItemProcessorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,9 +10,7 @@ public class Processors {
 
   public static ItemProcessor<Integer, Integer> compose(
       ItemProcessor<Integer, Integer>... processors) {
-    var compositeProcessor = new CompositeItemProcessor<Integer, Integer>();
-    compositeProcessor.setDelegates(List.of(processors));
-    return compositeProcessor;
+    return new CompositeItemProcessorBuilder().delegates(processors).build();
   }
 
   public static ItemProcessor<Integer, Integer> failEveryNthProcessor(int n) {
@@ -56,6 +53,17 @@ public class Processors {
       @Override
       public Integer process(Integer integer) throws Exception {
         loggingService.logInNewTransaction(integer);
+        return integer;
+      }
+    };
+  }
+
+  @Bean
+  public ItemProcessor<Integer, Integer> markProcessedItemProcessor(LoggingService loggingService) {
+    return new ItemProcessor<Integer, Integer>() {
+      @Override
+      public Integer process(Integer integer) throws Exception {
+        loggingService.markWorkItemProcessed(integer);
         return integer;
       }
     };

@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS work_item
 (
    work_item_id   INTEGER PRIMARY KEY,
-   work_item_name VARCHAR(20) NOT NULL
+   work_item_name VARCHAR(20) NOT NULL,
+   work_item_processed timestamp
 );
 
 DELETE FROM work_item;
