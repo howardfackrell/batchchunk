@@ -1,11 +1,14 @@
 package com.hlf.batchchunk;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.support.builder.CompositeItemProcessorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
+@Slf4j
 public class Processors {
 
   public static ItemProcessor<Integer, Integer> compose(
@@ -29,7 +32,8 @@ public class Processors {
     return new ItemProcessor<Integer, Integer>() {
       @Override
       public Integer process(Integer integer) throws Exception {
-        System.out.println(integer + " currently processing");
+//        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info(integer + " currently processing ");
         return integer;
       }
     };

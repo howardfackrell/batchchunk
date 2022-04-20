@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.batch.item.support.SynchronizedItemStreamReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.RowMapper;
@@ -34,6 +35,33 @@ public class Readers {
             });
 
     return new ListItemReader(work);
+  }
+
+  public static class SynchronizedListItemReader<T> extends ListItemReader<T> {
+      public SynchronizedListItemReader(List<T> list) {
+          super(list);
+      }
+
+      @Override
+      public synchronized T read() {
+          return super.read();
+      }
+  }
+
+  @Bean
+  public ItemReader<Integer> syncDatabaseListReader(NamedParameterJdbcTemplate jdbcTemplate) {
+      String sql = "SELECT work_item_id FROM work_item ORDER BY work_item_id";
+      List<Integer> work =
+              jdbcTemplate.query(
+                      sql,
+                      new RowMapper<Integer>() {
+                          @Override
+                          public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                              return rs.getInt("WORK_ITEM_ID");
+                          }
+                      });
+
+      return new SynchronizedListItemReader(work);
   }
 
   @Bean
